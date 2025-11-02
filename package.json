@@ -1,0 +1,24 @@
+{
+  "name": "simulateur-tarification-immo",
+  "version": "1.0.0",
+  "description": "Simulateur professionnel de stratégie tarifaire immobilière - ALIZ STRATEGY",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm start",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "start": "node backend/server.js"
+  },
+  "keywords": [
+    "immobilier",
+    "simulation",
+    "tarification",
+    "côte d'ivoire"
+  ],
+  "author": "ALIZ STRATEGY",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
+}
