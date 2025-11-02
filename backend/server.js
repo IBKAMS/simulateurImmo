@@ -10,9 +10,25 @@ dotenv.config();
 // Initialisation de l'application Express
 const app = express();
 
-// Middlewares
+// Middlewares - Configuration CORS pour autoriser Vercel et localhost
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://simulateur-immo-swart.vercel.app',
+  process.env.CLIENT_URL // URL personnalisable via variable d'environnement
+].filter(Boolean); // Enlève les valeurs undefined
+
 app.use(cors({
-  origin: 'http://localhost:3000', // URL du frontend React
+  origin: function (origin, callback) {
+    // Autoriser les requêtes sans origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('❌ Origine bloquée par CORS:', origin);
+      callback(new Error('Non autorisé par CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
