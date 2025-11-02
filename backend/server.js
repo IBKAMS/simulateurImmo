@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Configuration de MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/simulateur-immo';
+const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/simulateur-immo';
 
 // Connexion à MongoDB
 mongoose.connect(MONGODB_URI, {
