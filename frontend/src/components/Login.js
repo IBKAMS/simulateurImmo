@@ -29,7 +29,7 @@ const Login = ({ onLogin }) => {
       const response = await authService.login(formData.email, formData.password);
       if (response.success) {
         onLogin(response.user);
-        navigate('/simulator');
+        navigate('/simulator-enhanced');
       }
     } catch (err) {
       setError(err.message || 'Erreur lors de la connexion. Veuillez réessayer.');
