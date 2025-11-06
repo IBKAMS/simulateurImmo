@@ -10,10 +10,13 @@ dotenv.config();
 // Initialisation de l'application Express
 const app = express();
 
-// Middlewares - Configuration CORS pour autoriser Vercel et localhost
+// Middlewares - Configuration CORS pour autoriser tous les domaines
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://simulateur-immo-swart.vercel.app',
+  'https://www.simulateur-immo.com',  // Le domaine .com
+  'https://www.simulateur-immo.net',  // Le domaine .net
+  'https://www.simulateur-immo.org',  // Le domaine .org
+  'https://simulateur-immo-swart.vercel.app', // Le domaine Vercel
   process.env.CLIENT_URL // URL personnalisable via variable d'environnement
 ].filter(Boolean); // Enlève les valeurs undefined
 
