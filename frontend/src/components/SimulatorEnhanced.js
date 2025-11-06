@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Chart from 'chart.js/auto';
 import simulationService from '../services/simulationService';
+import { generatePDF } from '../utils/pdfExport';
 import './SimulatorEnhanced.css';
 
 const SimulatorEnhanced = ({ user, onLogout }) => {
@@ -229,6 +230,38 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
       console.error('Erreur lors du chargement:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fonction pour exporter en PDF
+  const handlePDFExport = async () => {
+    try {
+      // Préparer les données pour le PDF
+      const results = {
+        coutTotalProjet: financialResults.investissementTotal,
+        chiffreAffaires: financialResults.chiffreAffairesProjete,
+        margeBrute: financialResults.margeBrute || (financialResults.chiffreAffairesProjete - financialResults.investissementTotal),
+        margeNette: financialResults.margeNette,
+        tauxMarge: financialResults.tauxMarge || ((financialResults.margeNette / financialResults.chiffreAffairesProjete) * 100),
+        roi: financialResults.roi,
+        prixMoyenM2: financialResults.prixMoyenParM2 || 0,
+        vrdTotal: simulationData.surfaceTotaleTerrain * simulationData.coutFoncier * (simulationData.vrdCout / 100),
+        fraisEtudesTotal: financialResults.investissementTotal * (simulationData.fraisEtudes / 100),
+        fraisFinanciersTotal: financialResults.investissementTotal * (simulationData.fraisFinanciers / 100),
+        tvaTotal: financialResults.investissementTotal * (simulationData.tauxTVA / 100),
+        fraisCommTotal: financialResults.chiffreAffairesProjete * (simulationData.fraisComm / 100)
+      };
+
+      // Générer le PDF
+      await generatePDF(simulationData, results);
+
+      // Message de succès
+      setSaveMessage('PDF exporté avec succès!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+      console.error('Erreur lors de l\'export PDF:', error);
+      setSaveMessage('Erreur lors de l\'export du PDF');
+      setTimeout(() => setSaveMessage(''), 3000);
     }
   };
 
@@ -2443,6 +2476,27 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
         <div className={`tab-content ${activeTab === 'simulation' ? 'active' : ''}`}>
           <div className="section-header">
             <h2>Résultats de la Simulation</h2>
+            <button
+              className="export-pdf-btn"
+              onClick={() => handlePDFExport()}
+              style={{
+                marginLeft: 'auto',
+                padding: '10px 20px',
+                backgroundColor: '#27ae60',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>📄</span>
+              Exporter en PDF
+            </button>
           </div>
 
           <div className="results-grid enhanced">
