@@ -5,6 +5,8 @@ import './App.css';
 // Pages et composants (à créer)
 import Login from './components/Login';
 import Register from './components/Register';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 import Simulator from './components/Simulator';
 import SimulatorEnhanced from './components/SimulatorEnhanced';
 import Dashboard from './components/Dashboard';
@@ -63,6 +65,18 @@ function App() {
           path="/register"
           element={
             user ? <Navigate to="/simulator-enhanced" /> : <Register onRegister={handleLogin} />
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            user ? <Navigate to="/simulator-enhanced" /> : <ForgotPassword />
+          }
+        />
+        <Route
+          path="/reset-password/:token"
+          element={
+            user ? <Navigate to="/simulator-enhanced" /> : <ResetPassword onLogin={handleLogin} />
           }
         />
 

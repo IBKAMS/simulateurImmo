@@ -11,6 +11,7 @@ const Login = ({ onLogin }) => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -18,6 +19,10 @@ const Login = ({ onLogin }) => {
       [e.target.name]: e.target.value
     });
     setError('');
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   const handleSubmit = async (e) => {
@@ -71,17 +76,38 @@ const Login = ({ onLogin }) => {
 
           <div className="form-group">
             <label htmlFor="password">Mot de passe</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="form-control"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              placeholder="••••••••"
-              disabled={loading}
-            />
+            <div className="password-input-container">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                className="form-control password-input"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                placeholder="••••••••"
+                disabled={loading}
+              />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={togglePasswordVisibility}
+                tabIndex="-1"
+                aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              >
+                {showPassword ? (
+                  <span className="eye-icon">👁️</span>
+                ) : (
+                  <span className="eye-icon">👁️‍🗨️</span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="form-group" style={{ textAlign: 'right', marginTop: '-10px', marginBottom: '20px' }}>
+            <Link to="/forgot-password" className="auth-link" style={{ fontSize: '0.9em' }}>
+              Mot de passe oublié ?
+            </Link>
           </div>
 
           <button
