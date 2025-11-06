@@ -98,9 +98,7 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
     fraisEtudes: 7,
     fraisFinanciers: 3,
     tauxTVA: 18,
-    // Marges personnalisables par type de bien
-    customMarginsByType: {},
-    // Marges globales par défaut (pour la rétrocompatibilité)
+    // Marges personnalisables
     customMargins: {
       level1: 30,
       level2: 60,
@@ -174,31 +172,6 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
     calculateFinancials();
   }, [simulationData]);
 
-  // Initialiser les marges par type de bien
-  useEffect(() => {
-    const newMarginsByType = {};
-    simulationData.typologieBiens.forEach(bien => {
-      if (!simulationData.customMarginsByType[bien.nom]) {
-        // Initialiser avec les marges par défaut si non définies
-        newMarginsByType[bien.nom] = {
-          level1: simulationData.customMargins.level1,
-          level2: simulationData.customMargins.level2,
-          level3: simulationData.customMargins.level3,
-          level4: simulationData.customMargins.level4
-        };
-      } else {
-        newMarginsByType[bien.nom] = simulationData.customMarginsByType[bien.nom];
-      }
-    });
-
-    if (JSON.stringify(newMarginsByType) !== JSON.stringify(simulationData.customMarginsByType)) {
-      setSimulationData(prev => ({
-        ...prev,
-        customMarginsByType: newMarginsByType
-      }));
-    }
-  }, [simulationData.typologieBiens, simulationData.customMargins]);
-
   // Initialiser les graphiques enrichis
   useEffect(() => {
     if (activeTab === 'simulation' || activeTab === 'analysis' || activeTab === 'benchmark' || activeTab === 'pricing') {
@@ -241,7 +214,6 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
       fraisFinanciers = 3,
       tauxTVA = 18,
       customMargins,
-      strategiePrix = {},
       localisationCoefficient = 1.5,
       concurrents = []
     } = simulationData;
@@ -258,10 +230,9 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
       const coutTotalHT = coutBase + fraisAdditionnels;
       const coutTotalTTC = coutTotalHT * (1 + tauxTVA / 100);
 
-      // Calcul des prix selon les marges personnalisées par type de bien
+      // Calcul des prix selon les marges personnalisées
       const prixParMarge = {};
-      const margesToUse = (strategiePrix.customMarginsByType && strategiePrix.customMarginsByType[bien.nom]) || customMargins;
-      Object.entries(margesToUse).forEach(([key, marge]) => {
+      Object.entries(customMargins).forEach(([key, marge]) => {
         prixParMarge[key] = coutTotalHT * (1 + marge / 100) * (1 + tauxTVA / 100);
       });
 
@@ -340,20 +311,6 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
       [parent]: {
         ...prev[parent],
         [field]: value
-      }
-    }));
-  };
-
-  // Nouvelle fonction pour gérer les changements de marge par type de bien
-  const handleMarginChangeByType = (propertyType, level, value) => {
-    setSimulationData(prev => ({
-      ...prev,
-      customMarginsByType: {
-        ...prev.customMarginsByType,
-        [propertyType]: {
-          ...prev.customMarginsByType[propertyType],
-          [level]: parseFloat(value)
-        }
       }
     }));
   };
@@ -1658,75 +1615,58 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
           <div className="grid grid-2">
             <div className="card gradient-card">
               <div className="card-header">
-                <h3 className="card-title">📊 Niveaux de Marge Personnalisables par Type de Bien</h3>
+                <h3 className="card-title">📊 Niveaux de Marge Personnalisables</h3>
               </div>
 
-              <div className="margin-controls" style={{ maxHeight: '600px', overflowY: 'auto', paddingRight: '10px' }}>
-                {simulationData.typologieBiens.map((bien) => (
-                  <div key={bien.nom} className="property-type-margins" style={{ marginBottom: '30px', padding: '15px', background: 'rgba(59, 130, 246, 0.03)', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.1)' }}>
-                    <h4 style={{ marginBottom: '15px', color: '#1e40af', fontSize: '1.1rem', fontWeight: '600' }}>
-                      🏠 {bien.nom}
-                    </h4>
+              <div className="margin-controls">
+                <div className="preset-buttons">
+                  <button
+                    className="btn btn-sm btn-preset"
+                    onClick={() => handleInputChange('customMargins', {
+                      level1: 15, level2: 25, level3: 35, level4: 45
+                    })}
+                  >
+                    🛡️ Conservateur
+                  </button>
+                  <button
+                    className="btn btn-sm btn-preset"
+                    onClick={() => handleInputChange('customMargins', {
+                      level1: 30, level2: 50, level3: 70, level4: 90
+                    })}
+                  >
+                    ⚖️ Équilibré
+                  </button>
+                  <button
+                    className="btn btn-sm btn-preset"
+                    onClick={() => handleInputChange('customMargins', {
+                      level1: 40, level2: 60, level3: 80, level4: 100
+                    })}
+                  >
+                    🚀 Agressif
+                  </button>
+                </div>
 
-                    <div className="preset-buttons" style={{ marginBottom: '15px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      <button
-                        className="btn btn-sm btn-preset"
-                        style={{ fontSize: '0.8rem', padding: '4px 10px' }}
-                        onClick={() => {
-                          ['level1', 'level2', 'level3', 'level4'].forEach((level, idx) => {
-                            handleMarginChangeByType(bien.nom, level, [15, 25, 35, 45][idx]);
-                          });
-                        }}
-                      >
-                        🛡️ Conservateur
-                      </button>
-                      <button
-                        className="btn btn-sm btn-preset"
-                        style={{ fontSize: '0.8rem', padding: '4px 10px' }}
-                        onClick={() => {
-                          ['level1', 'level2', 'level3', 'level4'].forEach((level, idx) => {
-                            handleMarginChangeByType(bien.nom, level, [30, 50, 70, 90][idx]);
-                          });
-                        }}
-                      >
-                        ⚖️ Équilibré
-                      </button>
-                      <button
-                        className="btn btn-sm btn-preset"
-                        style={{ fontSize: '0.8rem', padding: '4px 10px' }}
-                        onClick={() => {
-                          ['level1', 'level2', 'level3', 'level4'].forEach((level, idx) => {
-                            handleMarginChangeByType(bien.nom, level, [40, 60, 80, 100][idx]);
-                          });
-                        }}
-                      >
-                        🚀 Agressif
-                      </button>
-                    </div>
-
-                    {Object.entries(simulationData.customMarginsByType[bien.nom] || simulationData.customMargins).map(([key, value], index) => (
-                      <div key={`${bien.nom}-${key}`} className="form-group margin-slider" style={{ marginBottom: '12px' }}>
-                        <label style={{ fontSize: '0.9rem' }}>
-                          Niveau {index + 1} - Marge
-                          <span className={`margin-badge level-${index + 1}`}>{value}%</span>
-                        </label>
-                        <div className="slider-container">
-                          <input
-                            type="range"
-                            className={`slider margin-slider-${index + 1}`}
-                            min="10"
-                            max="100"
-                            step="5"
-                            value={value}
-                            onChange={(e) => handleMarginChangeByType(bien.nom, key, parseFloat(e.target.value))}
-                          />
-                          <div className="slider-labels">
-                            <span>10%</span>
-                            <span>100%</span>
-                          </div>
-                        </div>
+                {Object.entries(simulationData.customMargins).map(([key, value], index) => (
+                  <div key={key} className="form-group margin-slider">
+                    <label>
+                      Niveau {index + 1} - Marge
+                      <span className={`margin-badge level-${index + 1}`}>{value}%</span>
+                    </label>
+                    <div className="slider-container">
+                      <input
+                        type="range"
+                        className={`slider margin-slider-${index + 1}`}
+                        min="10"
+                        max="100"
+                        step="5"
+                        value={value}
+                        onChange={(e) => handleNestedChange('customMargins', key, parseFloat(e.target.value))}
+                      />
+                      <div className="slider-labels">
+                        <span>10%</span>
+                        <span>100%</span>
                       </div>
-                    ))}
+                    </div>
                   </div>
                 ))}
               </div>
