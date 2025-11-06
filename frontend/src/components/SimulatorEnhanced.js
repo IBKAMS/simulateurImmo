@@ -10,10 +10,18 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
   const [searchParams] = useSearchParams();
   const simulationId = searchParams.get('id');
 
+  // Logs pour debug
+  console.log('🚀 SimulatorEnhanced monté');
+  console.log('📍 URL params:', window.location.search);
+  console.log('🔑 ID de simulation récupéré:', simulationId);
+  console.log('👤 Utilisateur connecté:', user);
+
   // État de l'onglet actif
   const [activeTab, setActiveTab] = useState('config');
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [showDashboardLink, setShowDashboardLink] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false); // Flag pour savoir si les données ont été chargées
 
   // Références pour les graphiques
   const costChartRef = useRef(null);
@@ -47,6 +55,7 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
   // État principal de la simulation enrichi
   const [simulationData, setSimulationData] = useState({
     nomProjet: 'Cité Kongo',
+    promoteur: 'ALIZ STRATEGY',
     localisation: 'Port-Bouët, Abékan-Bernard',
     typeZone: 'strategic',
     localisationCoefficient: 1.5,
@@ -163,23 +172,47 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
 
   // Charger une simulation existante si ID présent
   useEffect(() => {
+    console.log('=== UseEffect déclenché ===');
+    console.log('simulationId:', simulationId);
     if (simulationId) {
+      console.log('Chargement de la simulation avec ID:', simulationId);
       loadSimulation(simulationId);
     } else {
+      console.log('Pas d\'ID, calcul des finances par défaut');
       calculateFinancials();
     }
   }, [simulationId]);
 
-  // Recalculer les financials quand les données changent
+  // Recalculer quand les données sont chargées depuis le backend
   useEffect(() => {
-    calculateFinancials();
-  }, [simulationData]);
+    if (dataLoaded && !loading) {
+      console.log('🔄 Données chargées, déclenchement du recalcul...');
+      calculateFinancials();
+      // Réinitialiser le flag après le calcul
+      setDataLoaded(false);
+    }
+  }, [dataLoaded, loading]);
+
+  // Recalculer les financials quand les données changent (mais pas au montage initial)
+  const [isInitialMount, setIsInitialMount] = useState(true);
+  useEffect(() => {
+    if (isInitialMount) {
+      setIsInitialMount(false);
+      return;
+    }
+    // Ne recalculer que si ce n'est pas le montage initial et qu'il n'y a pas d'ID de simulation
+    if (!simulationId) {
+      calculateFinancials();
+    }
+  }, [simulationData.typologieBiens, simulationData.coutFoncier, simulationData.vrdCout,
+      simulationData.fraisEtudes, simulationData.fraisFinanciers, simulationData.tauxTVA,
+      simulationData.customMargins, simulationData.localisationCoefficient]);
 
   // Initialiser les marges par type de bien
   useEffect(() => {
     const newMarginsByType = {};
     simulationData.typologieBiens.forEach(bien => {
-      if (!simulationData.customMarginsByType[bien.nom]) {
+      if (!simulationData.customMarginsByType || !simulationData.customMarginsByType[bien.nom]) {
         // Initialiser avec les marges par défaut si non définies
         newMarginsByType[bien.nom] = {
           level1: simulationData.customMargins.level1,
@@ -188,7 +221,7 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
           level4: simulationData.customMargins.level4
         };
       } else {
-        newMarginsByType[bien.nom] = simulationData.customMarginsByType[bien.nom];
+        newMarginsByType[bien.nom] = simulationData.customMarginsByType?.[bien.nom] || {};
       }
     });
 
@@ -222,14 +255,98 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
   const loadSimulation = async (id) => {
     try {
       setLoading(true);
+      console.log('🔄 Début du chargement de la simulation avec ID:', id);
+      console.log('📡 Appel API en cours...');
+
       const response = await simulationService.getSimulation(id);
+      console.log('📥 Réponse complète du serveur:', response);
+      console.log('✅ Success:', response.success);
+      console.log('📦 Simulation présente:', !!response.simulation);
+
       if (response.success && response.simulation) {
-        setSimulationData(response.simulation);
+        const loadedData = response.simulation;
+        console.log('📊 Données de simulation reçues:', loadedData);
+        console.log('🏠 Types de biens:', loadedData.typologieBiens?.length || 0);
+
+        // Créer une structure complète avec toutes les valeurs par défaut
+        const completeSimulationData = {
+          nomProjet: loadedData.nomProjet || 'Cité Kongo',
+          promoteur: loadedData.promoteur || 'ALIZ STRATEGY',
+          localisation: loadedData.localisation || 'Port-Bouët, Abékan-Bernard',
+          typeZone: loadedData.typeZone || 'strategic',
+          localisationCoefficient: loadedData.localisationCoefficient || 1.5,
+          surfaceTotaleTerrain: loadedData.surfaceTotaleTerrain || 10000,
+          coutFoncier: loadedData.coutFoncier || 25000,
+          typeTitreFoncier: loadedData.typeTitreFoncier || 'acd',
+          typologieBiens: loadedData.typologieBiens || [],
+          vrdCout: loadedData.vrdCout || 10,
+          fraisEtudes: loadedData.fraisEtudes || 7,
+          fraisFinanciers: loadedData.fraisFinanciers || 3,
+          tauxTVA: loadedData.tauxTVA || 18,
+          customMarginsByType: loadedData.customMarginsByType || {},
+          customMargins: loadedData.customMargins || {
+            level1: 30,
+            level2: 60,
+            level3: 80,
+            level4: 100
+          },
+          marges: loadedData.marges || {
+            penetration: 30,
+            target: 60,
+            premium: 80,
+            premiumPlus: 100
+          },
+          phasage: loadedData.phasage || {
+            phase1Percent: 30,
+            phase2Percent: 35,
+            phase3Percent: 35,
+            phase2Increase: 5,
+            phase3Increase: 10
+          },
+          concurrents: loadedData.concurrents || []
+        };
+
+        console.log('✅ Structure complète préparée:', completeSimulationData);
+
+        // Initialiser les marges par type si nécessaire AVANT de mettre à jour l'état
+        if (Object.keys(completeSimulationData.customMarginsByType).length === 0) {
+          const newMarginsByType = {};
+          completeSimulationData.typologieBiens.forEach(bien => {
+            newMarginsByType[bien.nom] = {
+              level1: completeSimulationData.customMargins.level1,
+              level2: completeSimulationData.customMargins.level2,
+              level3: completeSimulationData.customMargins.level3,
+              level4: completeSimulationData.customMargins.level4
+            };
+          });
+          console.log('📝 Initialisation des marges par type:', newMarginsByType);
+          completeSimulationData.customMarginsByType = newMarginsByType;
+        }
+
+        // Mettre à jour l'état avec les données complètes
+        console.log('📝 Mise à jour de l\'état avec les données complètes');
+        setSimulationData(completeSimulationData);
+
+        // Définir l'indicateur de chargement terminé
+        console.log('✨ Données de simulation chargées avec succès');
+
+        // Marquer les données comme chargées
+        setDataLoaded(true);
+        setLoading(false); // Important : mettre loading à false ici
+
+      } else {
+        console.error('❌ Pas de simulation trouvée dans la réponse');
+        console.error('❌ Réponse reçue:', response);
+        alert('Simulation non trouvée');
+        setLoading(false);
       }
     } catch (error) {
-      console.error('Erreur lors du chargement:', error);
-    } finally {
+      console.error('❌ Erreur lors du chargement:', error);
+      console.error('❌ Détails de l\'erreur:', error.response || error.message);
+      alert('Erreur lors du chargement de la simulation: ' + error.message);
       setLoading(false);
+    } finally {
+      console.log('✅ Fin de la tentative de chargement');
     }
   };
 
@@ -293,7 +410,7 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
 
       // Calcul des prix selon les marges personnalisées par type de bien
       const prixParMarge = {};
-      const margesToUse = (strategiePrix.customMarginsByType && strategiePrix.customMarginsByType[bien.nom]) || customMargins;
+      const margesToUse = strategiePrix.customMarginsByType?.[bien.nom] || customMargins;
       Object.entries(margesToUse).forEach(([key, marge]) => {
         prixParMarge[key] = coutTotalHT * (1 + marge / 100) * (1 + tauxTVA / 100);
       });
@@ -384,7 +501,7 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
       customMarginsByType: {
         ...prev.customMarginsByType,
         [propertyType]: {
-          ...prev.customMarginsByType[propertyType],
+          ...prev.customMarginsByType?.[propertyType],
           [level]: parseFloat(value)
         }
       }
@@ -477,11 +594,12 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
       }
 
       if (response.success) {
-        setSaveMessage('✅ Simulation sauvegardée avec succès !');
-        if (!simulationId && response.simulation?._id) {
-          navigate(`/simulator-enhanced?id=${response.simulation._id}`, { replace: true });
-        }
-        setTimeout(() => setSaveMessage(''), 3000);
+        setSaveMessage('✅ Simulation sauvegardée avec succès ! Redirection vers le tableau de bord...');
+        setShowDashboardLink(true); // Faire apparaître le lien Dashboard
+        // Rediriger vers le tableau de bord après un court délai pour afficher le message
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
       }
     } catch (error) {
       setSaveMessage('❌ Erreur lors de la sauvegarde');
@@ -1201,9 +1319,11 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
           <button onClick={saveSimulation} className="btn btn-primary" disabled={loading}>
             💾 {simulationId ? 'Mettre à jour' : 'Sauvegarder'}
           </button>
-          <Link to="/dashboard" className="btn btn-secondary">
-            📊 Tableau de bord
-          </Link>
+          {showDashboardLink && (
+            <Link to="/dashboard" className="btn btn-secondary dashboard-link-animated">
+              📊 Tableau de bord
+            </Link>
+          )}
           <button onClick={onLogout} className="btn btn-outline">
             🚪 Déconnexion
           </button>
@@ -1282,6 +1402,20 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
                   className="form-control"
                   value={simulationData.nomProjet}
                   onChange={(e) => handleInputChange('nomProjet', e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>
+                  Promoteur du Projet
+                  <Tooltip text="Nom du promoteur ou de la société de promotion immobilière" />
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={simulationData.promoteur}
+                  onChange={(e) => handleInputChange('promoteur', e.target.value)}
+                  placeholder="ALIZ STRATEGY"
                 />
               </div>
 
@@ -1737,7 +1871,7 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
                       </button>
                     </div>
 
-                    {Object.entries(simulationData.customMarginsByType[bien.nom] || simulationData.customMargins).map(([key, value], index) => (
+                    {Object.entries((simulationData.customMarginsByType?.[bien.nom]) || simulationData.customMargins || {}).map(([key, value], index) => (
                       <div key={`${bien.nom}-${key}`} className="form-group margin-slider" style={{ marginBottom: '12px' }}>
                         <label style={{ fontSize: '0.9rem' }}>
                           Niveau {index + 1} - Marge
