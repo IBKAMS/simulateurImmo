@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Chart from 'chart.js/auto';
 import simulationService from '../services/simulationService';
 import { generatePDF } from '../utils/pdfExport';
+import Tooltip from './Tooltip';
 import './SimulatorEnhanced.css';
 
 const SimulatorEnhanced = ({ user, onLogout }) => {
@@ -2549,6 +2550,51 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
             </div>
           </div>
 
+          <div className="help-box" style={{marginTop: '20px', marginBottom: '20px', background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', border: '2px solid #0ea5e9', padding: '20px'}}>
+            <h3 style={{color: '#0369a1', marginBottom: '15px', fontSize: '1.1rem'}}>🎯 Comprendre les Indicateurs Financiers</h3>
+
+            <div style={{marginBottom: '15px'}}>
+              <strong style={{color: '#0c4a6e', fontSize: '1rem'}}>📊 MARGE (%)</strong>
+              <p style={{marginTop: '5px', marginBottom: '5px', lineHeight: '1.6'}}>
+                La marge commerciale est le pourcentage ajouté au coût total pour déterminer le prix de vente.
+              </p>
+              <p style={{marginLeft: '20px', color: '#0369a1', fontStyle: 'italic'}}>
+                → Exemple : Si votre investissement est de 50 000 000 FCFA et que vous appliquez une marge de 20%, votre prix de vente sera de 60 000 000 FCFA.
+              </p>
+            </div>
+
+            <div style={{marginBottom: '15px'}}>
+              <strong style={{color: '#0c4a6e', fontSize: '1rem'}}>💰 MARGE NETTE</strong>
+              <p style={{marginTop: '5px', marginBottom: '5px', lineHeight: '1.6'}}>
+                C'est le bénéfice réel que vous réalisez après avoir déduit tous les coûts du chiffre d'affaires.
+              </p>
+              <p style={{marginLeft: '20px', color: '#0369a1'}}>
+                → Formule : <strong>Marge Nette = CA Projeté - Investissement Total</strong>
+              </p>
+              <p style={{marginLeft: '20px', color: '#0369a1', fontStyle: 'italic'}}>
+                → Exemple : Si vous vendez à 60 000 000 FCFA et que vous avez investi 50 000 000 FCFA, votre marge nette est de 10 000 000 FCFA.
+              </p>
+            </div>
+
+            <div style={{marginBottom: '10px'}}>
+              <strong style={{color: '#0c4a6e', fontSize: '1rem'}}>📈 ROI (Return On Investment)</strong>
+              <p style={{marginTop: '5px', marginBottom: '5px', lineHeight: '1.6'}}>
+                Le ROI mesure la rentabilité de votre investissement en pourcentage.
+              </p>
+              <p style={{marginLeft: '20px', color: '#0369a1'}}>
+                → Formule : <strong>ROI = (Marge Nette ÷ Investissement) × 100</strong>
+              </p>
+              <p style={{marginLeft: '20px', color: '#0369a1', fontStyle: 'italic'}}>
+                → Exemple : Avec 10 000 000 FCFA de marge nette pour 50 000 000 FCFA d'investissement :<br/>
+                &nbsp;&nbsp;&nbsp;ROI = (10 000 000 ÷ 50 000 000) × 100 = 20%
+              </p>
+            </div>
+
+            <div style={{marginTop: '15px', padding: '10px', background: '#bae6fd', borderRadius: '8px', borderLeft: '4px solid #0284c7'}}>
+              <strong style={{color: '#0c4a6e'}}>💡 À retenir :</strong> Un ROI de 20% signifie que vous gagnez 20% de profit sur votre investissement initial. Plus le ROI est élevé, plus votre projet est rentable !
+            </div>
+          </div>
+
           <div className="grid grid-2">
             <div className="card gradient-card">
               <div className="card-header">
@@ -2571,7 +2617,9 @@ const SimulatorEnhanced = ({ user, onLogout }) => {
 
           <div className="card gradient-card mt-3">
             <div className="card-header">
-              <h3 className="card-title">📋 Analyse de Rentabilité par Scénario</h3>
+              <h3 className="card-title">
+                📋 Analyse de Rentabilité par Scénario
+              </h3>
             </div>
             <div className="rentability-table">
               <table className="table-enhanced">

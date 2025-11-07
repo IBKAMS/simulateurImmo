@@ -1,0 +1,213 @@
+.tooltip-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* S'assurer que le tableau ne masque pas les tooltips */
+table th .tooltip-container,
+table td .tooltip-container {
+  position: static;
+}
+
+table {
+  overflow: visible !important;
+}
+
+table th,
+table td {
+  overflow: visible !important;
+}
+
+.tooltip-trigger {
+  cursor: help;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 6px;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.tooltip-trigger:hover .tooltip-icon {
+  transform: scale(1.15);
+  box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #7c8ff0 0%, #8759ad 100%);
+}
+
+.tooltip-content {
+  position: fixed;  /* Position fixe pour ne pas cacher le contenu */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  background: #ffffff;  /* Fond blanc */
+  backdrop-filter: blur(10px);
+  color: #1a1a2e;  /* Texte noir/sombre */
+  padding: 28px 32px;
+  border-radius: 16px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  white-space: normal;
+  max-width: 500px;
+  min-width: 380px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(0, 0, 0, 0.15),
+    0 8px 32px rgba(102, 126, 234, 0.25);
+  z-index: 999999;
+  animation: tooltipSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  text-align: left;
+  line-height: 1.75;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  border: 2px solid rgba(102, 126, 234, 0.4);
+  opacity: 0;
+}
+
+.tooltip-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999998;
+  animation: backdropFadeIn 0.2s ease-out forwards;
+  cursor: pointer;
+}
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tooltip-content::before,
+.tooltip-content::after {
+  display: none;  /* Pas de flèche pour position fixe centrée */
+}
+
+@keyframes tooltipSlideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Effet de pulsation pour l'icône */
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Styles additionnels pour une meilleure lisibilité */
+.tooltip-content strong {
+  color: #a5b4fc;
+  font-weight: 600;
+}
+
+.tooltip-content em {
+  color: #cbd5e1;
+  font-style: normal;
+  opacity: 0.9;
+}
+
+/* Positionnement alternatif si on veut le mettre au-dessus (classe optionnelle) */
+.tooltip-container.tooltip-top .tooltip-content {
+  top: auto;
+  bottom: calc(100% + 12px);
+}
+
+.tooltip-container.tooltip-top .tooltip-content::before,
+.tooltip-container.tooltip-top .tooltip-content::after {
+  bottom: auto;
+  top: 100%;
+  border-width: 8px 8px 0 8px;
+  border-color: rgba(30, 30, 45, 0.98) transparent transparent transparent;
+}
+
+.tooltip-container.tooltip-top .tooltip-content::after {
+  border-width: 9px 9px 0 9px;
+  border-color: rgba(255, 255, 255, 0.1) transparent transparent transparent;
+}
+
+/* Amélioration de l'accessibilité */
+.tooltip-trigger:focus .tooltip-icon {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+/* Styles pour mobile */
+@media (max-width: 768px) {
+  .tooltip-content {
+    position: fixed;
+    bottom: auto;
+    top: 50%;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(1);
+    max-width: 85vw;
+    min-width: 320px;
+    z-index: 99999;
+    background: #ffffff;  /* Fond blanc */
+    backdrop-filter: blur(15px);
+    box-shadow:
+      0 20px 40px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(0, 0, 0, 0.1),
+      0 4px 30px rgba(102, 126, 234, 0.2);
+    padding: 26px 30px;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #1a1a2e;  /* Texte noir/sombre */
+    animation: tooltipMobileFadeIn 0.3s ease-out forwards;
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    line-height: 1.75;
+  }
+
+  .tooltip-content::before,
+  .tooltip-content::after {
+    display: none;
+  }
+
+  .tooltip-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+  }
+}
+
+@keyframes tooltipMobileFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
